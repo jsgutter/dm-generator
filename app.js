@@ -276,6 +276,41 @@ renderConvention(rightContent, gen);
     (MASTER.generators || []).forEach(gen => renderPair(pairs, gen));
   }
 
+  async function loadCSV(file){
+    try{
+      const text = await new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+      });
+      const lines = (text || '').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      if(!lines.length) throw new Error('Empty file');
+      if(/^generator\s*,/i.test(lines[0])) lines.shift();
+      const gens = {};
+      lines.forEach((line, idx)=>{
+        const parts = line.split(',');
+        if(parts.length < 4) throw new Error(`Invalid row ${idx+1}`);
+        const [gid, field, label, code] = parts.map(p=>p.trim());
+        if(!gid || !field || !code) throw new Error(`Missing values on row ${idx+1}`);
+        if(!gens[gid]){
+          gens[gid] = {id:gid, order:[], fields:{}, optional:[], delimiter:'_', case:'lower'};
+        }
+        const g = gens[gid];
+        if(!g.order.includes(field)) g.order.push(field);
+        if(!g.fields[field]) g.fields[field] = [];
+        g.fields[field].push({label, code});
+      });
+      MASTER = {generators:Object.values(gens)};
+      SCHEMA_MODE = 'CSV Upload';
+      renderAll();
+      toast('CSV schema loaded');
+    }catch(e){
+      console.error(e);
+      toast(e.message || 'Failed to load CSV');
+    }
+  }
+
   async function loadSchema(url){
     try{
       const res = await fetch(url, {cache:'no-store'});
@@ -295,6 +330,25 @@ renderConvention(rightContent, gen);
       SCHEMA_MODE = 'Embedded JSON';
       renderAll();
     }
+  }
+
+  const csvUpload = document.getElementById('csvUpload');
+  const csvDropZone = document.getElementById('csvDropZone');
+  if(csvUpload){
+    csvUpload.addEventListener('change', e=>{
+      const f = e.target.files && e.target.files[0];
+      if(f) loadCSV(f);
+    });
+  }
+  if(csvDropZone){
+    csvDropZone.addEventListener('dragover', e=>{ e.preventDefault(); csvDropZone.classList.add('over'); });
+    csvDropZone.addEventListener('dragleave', e=>{ e.preventDefault(); csvDropZone.classList.remove('over'); });
+    csvDropZone.addEventListener('drop', e=>{
+      e.preventDefault();
+      csvDropZone.classList.remove('over');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) loadCSV(f);
+    });
   }
 
   // Boot: render embedded first, then try to fetch external schema from known names
