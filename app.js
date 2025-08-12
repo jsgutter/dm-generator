@@ -290,17 +290,21 @@ renderConvention(rightContent, gen);
       const gens = {};
       lines.forEach((line, idx)=>{
         const parts = line.split(',');
-        if(parts.length < 4) throw new Error(`Invalid row ${idx+1}`);
-        const [gid, field, label, code] = parts.map(p=>p.trim());
+        if(parts.length < 8) throw new Error(`Invalid row ${idx+1}`);
+        const [gid, order, field, optional, label, code, delimiter, caseRule] = parts.map(p=>p.trim());
         if(!gid || !field || !code) throw new Error(`Missing values on row ${idx+1}`);
+        const pos = Number(order);
+        const opt = /^true$/i.test(optional);
         if(!gens[gid]){
-          gens[gid] = {id:gid, order:[], fields:{}, optional:[], delimiter:'_', case:'lower'};
+          gens[gid] = {id:gid, order:[], fields:{}, optional:[], delimiter:delimiter||'_', case:caseRule||'lower'};
         }
         const g = gens[gid];
-        if(!g.order.includes(field)) g.order.push(field);
+        g.order[pos] = field;
+        if(opt) g.optional.push(field);
         if(!g.fields[field]) g.fields[field] = [];
         g.fields[field].push({label, code});
       });
+      Object.values(gens).forEach(g=>{ g.order = g.order.filter(Boolean); });
       MASTER = {generators:Object.values(gens)};
       SCHEMA_MODE = 'CSV Upload';
       renderAll();
