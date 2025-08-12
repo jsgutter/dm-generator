@@ -173,3 +173,7 @@
   margin-top: -22px; /* adjust this number as needed */
 }
 
+#csvDropZone.over{
+  border-color: var(--brand);
+}
+
