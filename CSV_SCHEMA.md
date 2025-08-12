@@ -2,6 +2,9 @@
 
 This document outlines the required columns for the CSV naming schema consumed by the DM Name Generator.
 
+CSV Master File
+--> https://docs.google.com/spreadsheets/d/1dnvlt8HyXBW0xU2PvM5_cLy-dz5Jke_M5egn_fCVQko/edit?gid=2047636821#gid=2047636821 
+
 ## Required Columns
 
 | Column | Description | Example |
