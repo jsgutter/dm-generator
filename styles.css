@@ -135,13 +135,20 @@
     .copyright{color:var(--muted); font-size:12px; margin-left:2px}
 
     /* CSV upload */
+    label[for="csvUpload"]{
+      display:block;
+      margin-top:32px;
+    }
+    #csvUpload{
+      margin-top:8px;
+    }
     #csvDropZone {
       border:2px dashed var(--border);
       border-radius:12px;
       padding:20px;
       text-align:center;
       color:var(--muted);
-      margin-top:16px;
+      margin:16px 0 32px;
       cursor:pointer;
     }
     #csvDropZone:hover,
